@@ -1,10 +1,13 @@
 package sqaproject;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Label;
 import java.awt.TextField;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
@@ -12,10 +15,14 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Random;
 import java.util.Scanner;
 import java.sql.PreparedStatement;
+
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -81,7 +88,9 @@ public class main {
 
 class frame extends JMenuItem implements ActionListener {
 
-	JMenuItem item1, item2, item3, item4;
+	JMenuItem item_login, item_password, item3, item4;
+	JPanel Control = new JPanel();
+	Label title = new Label("歡迎來到本系統");
 
 	JMenu demo1;
 
@@ -92,21 +101,24 @@ class frame extends JMenuItem implements ActionListener {
 		frame.setLayout(new GridLayout(6, 4));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+		title.setFont(new Font("標楷體", Font.BOLD, 35));
+		Control.add(title);
+
+		frame.add(Control);
+
 		JMenuItem item1, item2, item3, item4;
-		JMenu demo1 = new JMenu("demo1");
-		item1 = new JMenuItem("註冊");
-		item2 = new JMenuItem("登入");
-		demo1.add(item1);
-		item1.addActionListener(this);
-		item2.addActionListener(this);
-		demo1.add(item2);
-		/*
-		 * JMenu demo2 = new JMenu("demo2"); item3 = new JMenuItem("three");
-		 * item4 = new JMenuItem("four"); demo2.add(item3); demo2.add(item4);
-		 */
+		JMenu demo1 = new JMenu("功能");
+		item_login = new JMenuItem("註冊");
+		item_password = new JMenuItem("登入");
+		demo1.add(item_login);
+
+		item_login.addActionListener(this);
+		item_password.addActionListener(this);
+		demo1.add(item_password);
+
 		JMenuBar menubar = new JMenuBar();
 		menubar.add(demo1);
-		// menubar.add(demo2);
+
 		frame.setJMenuBar(menubar);
 
 		frame.setVisible(true);
@@ -132,22 +144,27 @@ class frame extends JMenuItem implements ActionListener {
 class login extends JFrame implements ActionListener {
 
 	registered r = new registered();
-
-	TextField account_number, password;
+	Random ran = new Random();
+	TextField account_number, password, input_checkcode;
 	int[] text = new int[50];
 	int[] text2 = new int[50];
 	Label input_account_number = new Label("帳號");
 	Label input_password = new Label("密碼");
+	Label message = new Label("");
+	Label check = new Label("輸入驗證碼");
+	Label checkcode = new Label("");
 	JPanel Control = new JPanel();
 	JPanel Control2 = new JPanel();
 	JPanel Control3 = new JPanel();
+	JPanel Control4 = new JPanel();
 	JButton login = new JButton("登入");
 	JButton forgotpassword = new JButton("忘記密碼");
+	int count_error = 0, ran_number;
 
 	public login() {
 		account_number = new TextField(10);
 		password = new TextField(10);
-
+		input_checkcode = new TextField(10);
 		login.addActionListener(this);
 		login.setFont(new Font("標楷體", Font.BOLD, 18));
 
@@ -164,17 +181,28 @@ class login extends JFrame implements ActionListener {
 
 		Control.setLayout(new GridLayout(0, 3));
 		Control.add(input_account_number);
-		Control.add(input_password);
+		Control.add(account_number);
 		Control.add(forgotpassword);
 
 		Control2.setLayout(new GridLayout(0, 3));
-		Control2.add(account_number);
+		Control2.add(input_password);
 		Control2.add(password);
 		Control2.add(login);
+
+		Control4.setLayout(new GridLayout(0, 3));
+
+		Control4.add(check);
+		Control4.add(checkcode);
+		Control4.add(input_checkcode);
+		Random ran = new Random();
+		ran_number = ran.nextInt(1000) + 1;
+
+		checkcode.setText(String.valueOf(ran_number));
 
 		Control3.setLayout(new GridLayout(0, 1));
 		Control3.add(Control);
 		Control3.add(Control2);
+		Control3.add(Control4);
 
 		this.add(Control3);
 		pack();
@@ -183,7 +211,8 @@ class login extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent arg0) {
 		if (arg0.getActionCommand().equals("登入")) {
 			Connection con = null;
-			int u = 0, count;
+			int u = 0, count, flag = 0;
+
 			String[] str_account = new String[10];
 			String[] str_password = new String[10];
 			try {
@@ -211,11 +240,38 @@ class login extends JFrame implements ActionListener {
 
 					}
 
-					for (count = 0; count < u; count++)
+					for (count = 0; count < u; count++) {
 						if (account_number.getText().equals(str_account[count])) {
-							System.out.println("ok");
-							System.out.println(u);
+
+							flag = 1;
 						}
+
+						else {
+							count_error++;
+							flag = 2;
+
+						}
+					}
+					if (input_checkcode.getText().equals(ran_number)) {
+						flag = 1;
+					} else {
+						count_error++;
+						flag = 2;
+					}
+
+					if (flag == 1) {
+
+						System.out.println(u);
+						JOptionPane.showMessageDialog(this, "登入成功");
+					} else if (flag == 2) {
+						count_error--;
+					}
+
+					else {
+						assert (flag == 0);
+						JOptionPane.showMessageDialog(this, "驗證碼或帳號有誤");
+
+					}
 
 					// 關閉連線
 					rs.close();
@@ -242,18 +298,21 @@ class registered extends JFrame implements ActionListener {
 	TextField account_number, password;
 	int[] text = new int[50];
 	int[] text2 = new int[50];
+	int u, count = 0;
 	Label input_account_number = new Label("帳號");
 	Label input_account_rule = new Label("帳號規則:帳號長度需在5到12之間,帳號不可包含'/'或是','");
 	Label input_password = new Label("密碼");
 	Label input_password_rule = new Label("密碼規則:帳號長度需在5到12之間,密碼第一字元需為大寫英文字母");
+	Label message = new Label("");
 	JPanel Control = new JPanel();
 	JPanel Control2 = new JPanel();
 	JPanel Control3 = new JPanel();
 	JPanel Control4 = new JPanel();
 	JButton login = new JButton("註冊");
 	JButton cancel = new JButton("取消");
-	char[][] account_1 = new char[10][20];
-	char[][] password_2 = new char[10][20];
+
+	String[] str_account = new String[10];
+	String[] str_password = new String[10];
 
 	public registered() {
 		account_number = new TextField(10);
@@ -283,9 +342,10 @@ class registered extends JFrame implements ActionListener {
 		Control2.add(password);
 		Control2.add(input_password_rule);
 
-		Control4.setLayout(new GridLayout(0, 2));
+		Control4.setLayout(new GridLayout(0, 3));
 		Control4.add(login);
 		Control4.add(cancel);
+		Control4.add(message);
 
 		Control3.setLayout(new GridLayout(0, 1));
 		Control3.add(Control);
@@ -334,23 +394,55 @@ class registered extends JFrame implements ActionListener {
 																				// 物件
 																				// 伺服器已經準備好的敘述就稱為「prepared
 																				// statement」
-						statement.setString(1, account_number.getText());
-						statement.setString(2, password.getText());
+						String sql2 = "select * from  information ";
+						ResultSet rs2 = stmt.executeQuery(sql2);
 
-						int rowsInserted = statement.executeUpdate();
-						if (rowsInserted > 0) {
-							System.out.println("A new user was inserted successfully!");
+						while (rs2.next()) {
+							u = 0;
+							str_account[u] = rs2.getString("account");
+							str_password[u] = rs2.getString("password");
+
+							u++;
+
 						}
-						ResultSet rs = stmt.executeQuery(sql);
-						// 通過Statement物件對資料庫下達SQL資料查詢指令並取得回傳之ResultSet物件
-						// (呼叫java.sql.Statement中的executeQuery()方法並給予"select *
-						// from employees"參數
-						// 關閉連線
-						rs.close();
-						rs = null;
-						stmt.close();
-						stmt = null;
-						con.close();
+
+						for (count = 0; count < u; count++) {
+							if (account_number.getText().equals(str_account[count])) {
+
+								flag = 1;
+							} else {
+								flag = 1;
+							}
+						}
+
+						if (flag == 1) {
+
+							statement.setString(1, account_number.getText());
+							statement.setString(2, password.getText());
+
+							int rowsInserted = statement.executeUpdate();
+							if (rowsInserted > 0) {
+								JOptionPane.showMessageDialog(this, "註冊成功");
+							}
+							ResultSet rs = stmt.executeQuery(sql);
+							// 通過Statement物件對資料庫下達SQL資料查詢指令並取得回傳之ResultSet物件
+							// (呼叫java.sql.Statement中的executeQuery()方法並給予"select
+							// *
+							// from employees"參數
+							// 關閉連線
+
+							rs.close();
+							rs = null;
+							stmt.close();
+							stmt = null;
+							con.close();
+						} else {
+							assert (flag == 0);
+
+							JOptionPane.showMessageDialog(this, "帳號已註冊");
+
+						}
+
 					} catch (Exception ex) {
 						System.out.println("can't read data");
 						System.out.println(ex.toString());
@@ -359,8 +451,15 @@ class registered extends JFrame implements ActionListener {
 					System.out.println("can't create statement");
 					System.out.println(e1.toString());
 				}
+			} else {
+
+				message.setText("error");
 			}
 
+		}
+
+		if (e.getActionCommand().equals("取消")) {
+			System.exit(0);
 		}
 
 	}
