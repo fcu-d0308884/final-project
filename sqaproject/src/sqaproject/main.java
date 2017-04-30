@@ -159,7 +159,11 @@ class login extends JFrame implements ActionListener {
 	JPanel Control4 = new JPanel();
 	JButton login = new JButton("登入");
 	JButton forgotpassword = new JButton("忘記密碼");
-	int count_error = 0, ran_number;
+	int count_error = 0, ran_number, a;
+	Connection con = null;
+	String[] str_account = new String[10];
+	String[] str_password = new String[10];
+	String[] str_email = new String[20];
 
 	public login() {
 		account_number = new TextField(10);
@@ -210,11 +214,10 @@ class login extends JFrame implements ActionListener {
 
 	public void actionPerformed(ActionEvent arg0) {
 		if (arg0.getActionCommand().equals("登入")) {
-			Connection con = null;
-			int u = 0, count, flag = 0;
 
-			String[] str_account = new String[10];
-			String[] str_password = new String[10];
+			int u = 0, count, flag = 0, flag2 = 0;
+			;
+
 			try {
 				Class.forName("com.mysql.jdbc.Driver");
 				// 註冊driver
@@ -235,6 +238,7 @@ class login extends JFrame implements ActionListener {
 						u = 0;
 						str_account[u] = rs.getString("account");
 						str_password[u] = rs.getString("password");
+						str_email[u] = rs.getString("email");
 
 						u++;
 
@@ -249,6 +253,7 @@ class login extends JFrame implements ActionListener {
 						else {
 							count_error++;
 							flag = 2;
+							flag2 = 0;
 
 						}
 					}
@@ -257,6 +262,7 @@ class login extends JFrame implements ActionListener {
 					} else {
 						count_error++;
 						flag = 2;
+						flag2 = 0;
 					}
 
 					if (flag == 1) {
@@ -267,8 +273,8 @@ class login extends JFrame implements ActionListener {
 						count_error--;
 					}
 
-					else {
-						assert (flag == 0);
+					if (flag2 == 0) {
+
 						JOptionPane.showMessageDialog(this, "驗證碼或帳號有誤");
 
 					}
@@ -289,13 +295,66 @@ class login extends JFrame implements ActionListener {
 			}
 
 		}
+
+		if (arg0.getActionCommand().equals("忘記密碼")) {
+			try {
+				Class.forName("com.mysql.jdbc.Driver");
+				int u = 0, count, r;
+
+				// 註冊driver
+				con = DriverManager.getConnection(
+						"jdbc:mysql://127.0.0.1:3306/member?useUnicode=true&characterEncoding=Big5", "root",
+						"zh403027");
+				// 取得connection
+				Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
+				try {
+					// 建立SQL查詢
+					String sql = "select * from  information ";
+					ResultSet rs = stmt.executeQuery(sql);
+
+					// 顯示資料
+					int i = 0;
+					while (rs.next()) {
+						u = 0;
+						str_account[u] = rs.getString("account");
+						str_password[u] = rs.getString("password");
+						str_email[u] = rs.getString("email");
+
+						u++;
+
+					}
+
+					String input_mail = JOptionPane.showInputDialog("請輸入帳號");
+					for (r = 0; r < u; r++) {
+						if (input_mail.equals(str_account[r])) {
+							a = r;
+
+							send s = new send();
+							s.send2(str_email[r], str_password[r]);
+
+						}
+
+					}
+
+				} catch (Exception ex) {
+					System.out.println("can't read data");
+					System.out.println(ex.toString());
+				}
+			} catch (Exception e1) {
+				System.out.println("can't create statement");
+				System.out.println(e1.toString());
+			}
+
+		}
+
 	}
 
 }
 
 class registered extends JFrame implements ActionListener {
 
-	TextField account_number, password;
+	TextField account_number, password, email;
 	int[] text = new int[50];
 	int[] text2 = new int[50];
 	int u, count = 0;
@@ -303,21 +362,26 @@ class registered extends JFrame implements ActionListener {
 	Label input_account_rule = new Label("帳號規則:帳號長度需在5到12之間,帳號不可包含'/'或是','");
 	Label input_password = new Label("密碼");
 	Label input_password_rule = new Label("密碼規則:帳號長度需在5到12之間,密碼第一字元需為大寫英文字母");
+	Label input_email = new Label("信箱");
+	Label input_mail_rule = new Label("作為忘記密碼使用");
+
 	Label message = new Label("");
 	JPanel Control = new JPanel();
 	JPanel Control2 = new JPanel();
 	JPanel Control3 = new JPanel();
 	JPanel Control4 = new JPanel();
+	JPanel Control5 = new JPanel();
 	JButton login = new JButton("註冊");
 	JButton cancel = new JButton("取消");
 
 	String[] str_account = new String[10];
 	String[] str_password = new String[10];
+	String[] str_email = new String[20];
 
 	public registered() {
 		account_number = new TextField(10);
 		password = new TextField(10);
-
+		email = new TextField(10);
 		login.addActionListener(this);
 		login.setFont(new Font("標楷體", Font.BOLD, 18));
 		login.addActionListener(this);
@@ -347,9 +411,16 @@ class registered extends JFrame implements ActionListener {
 		Control4.add(cancel);
 		Control4.add(message);
 
+		Control5.setLayout(new GridLayout(0, 3));
+		Control5.add(input_email);
+		Control5.add(email);
+		Control5.add(input_mail_rule);
+
 		Control3.setLayout(new GridLayout(0, 1));
 		Control3.add(Control);
 		Control3.add(Control2);
+
+		Control3.add(Control5);
 		Control3.add(Control4);
 		this.add(Control3);
 		pack();
@@ -385,7 +456,7 @@ class registered extends JFrame implements ActionListener {
 
 					try {
 						// 建立SQL查詢
-						String sql = "INSERT INTO information (account, password) VALUES (?, ?)";
+						String sql = "INSERT INTO information (account, password,email) VALUES (?, ?, ?)";
 						int i = 0;
 						PreparedStatement statement = con.prepareStatement(sql);// 先建立一個
 																				// SQL
@@ -401,15 +472,14 @@ class registered extends JFrame implements ActionListener {
 							u = 0;
 							str_account[u] = rs2.getString("account");
 							str_password[u] = rs2.getString("password");
-
+							str_email[u] = rs2.getString("email");
 							u++;
 
 						}
 
 						for (count = 0; count < u; count++) {
 							if (account_number.getText().equals(str_account[count])) {
-
-								flag = 1;
+								flag=0;
 							} else {
 								flag = 1;
 							}
@@ -419,7 +489,7 @@ class registered extends JFrame implements ActionListener {
 
 							statement.setString(1, account_number.getText());
 							statement.setString(2, password.getText());
-
+							statement.setString(3, email.getText());
 							int rowsInserted = statement.executeUpdate();
 							if (rowsInserted > 0) {
 								JOptionPane.showMessageDialog(this, "註冊成功");
