@@ -38,51 +38,6 @@ public class main {
 
 		frame fr1 = new frame();
 
-		/*
-		 * Scanner scan = new Scanner(System.in); String account =
-		 * scan.nextLine(); String password = scan.nextLine();
-		 * 
-		 * System.out.println(account); int i; try {
-		 * check_account_char(account); check_password_char(password);
-		 * 
-		 * } catch (charException e) { e.printStackTrace(); } catch
-		 * (lengthException e) { e.printStackTrace(); }
-		 * 
-		 * }
-		 * 
-		 * public static void check_account_char(String account) throws
-		 * Exception { int i, length;
-		 * 
-		 * length = account.length(); if (length < 5 || length > 12) { throw new
-		 * lengthException("帳號長度需在5到12之間"); }
-		 * 
-		 * for (i = 0; i < account.length(); i++) { if (account.charAt(i) == '/'
-		 * || account.charAt(i) == ',') { throw new
-		 * charException("帳號不可包含'/'或是','"); }
-		 * 
-		 * }
-		 * 
-		 * } public static void check_password_char(String password) throws
-		 * Exception { int length,temp; char i; //
-		 * temp=Integer.parseInt(password[0]); length = password.length(); if
-		 * (length < 5 || length > 12) { throw new
-		 * lengthException("密碼長度需在5到12之間"); } for(i='A';i<='Z';i++) {
-		 * if(password.charAt(0)!=i) { throw new
-		 * charException("密碼第一字元需為大寫英文字母"); } }
-		 * 
-		 * }
-		 * 
-		 * }
-		 * 
-		 * class charException extends Exception {
-		 * 
-		 * public charException(String str) { super(str); }
-		 * 
-		 * }
-		 * 
-		 * class lengthException extends Exception { public
-		 * lengthException(String str) { super(str); }
-		 */
 	}
 }
 
@@ -164,6 +119,7 @@ class login extends JFrame implements ActionListener {
 	String[] str_account = new String[10];
 	String[] str_password = new String[10];
 	String[] str_email = new String[20];
+	String s;
 
 	public login() {
 		account_number = new TextField(10);
@@ -200,6 +156,7 @@ class login extends JFrame implements ActionListener {
 		Control4.add(input_checkcode);
 		Random ran = new Random();
 		ran_number = ran.nextInt(1000) + 1;
+		s = String.valueOf(ran_number);
 
 		checkcode.setText(String.valueOf(ran_number));
 
@@ -216,13 +173,12 @@ class login extends JFrame implements ActionListener {
 		if (arg0.getActionCommand().equals("登入")) {
 
 			int u = 0, count, flag = 0, flag2 = 0;
-			;
 
 			try {
 				Class.forName("com.mysql.jdbc.Driver");
 				// 註冊driver
 				con = DriverManager.getConnection(
-						"jdbc:mysql://127.0.0.1:3306/member?useUnicode=true&characterEncoding=Big5", "root",
+						"jdbc:mysql://localhost/data?useUnicode=true&characterEncoding=utf-8&useSSL=false", "root",
 						"zh403027");
 				// 取得connection
 				Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -245,7 +201,8 @@ class login extends JFrame implements ActionListener {
 					}
 
 					for (count = 0; count < u; count++) {
-						if (account_number.getText().equals(str_account[count])) {
+						if (account_number.getText().equals(str_account[count])
+								&& password.getText().equals(str_password[count])) {
 
 							flag = 1;
 						}
@@ -257,7 +214,7 @@ class login extends JFrame implements ActionListener {
 
 						}
 					}
-					if (input_checkcode.getText().equals(ran_number)) {
+					if (input_checkcode.getText().equals(s)) {
 						flag = 1;
 					} else {
 						count_error++;
@@ -267,15 +224,21 @@ class login extends JFrame implements ActionListener {
 
 					if (flag == 1) {
 
-						System.out.println(u);
 						JOptionPane.showMessageDialog(this, "登入成功");
 					} else if (flag == 2) {
 						count_error--;
 					}
 
+					if (count_error == 3) {
+						System.exit(0);
+					}
+
 					if (flag2 == 0) {
 
 						JOptionPane.showMessageDialog(this, "驗證碼或帳號有誤");
+						account_number.setText(" ");
+						password.setText(" ");
+						input_checkcode.setText(" ");
 
 					}
 
@@ -303,7 +266,7 @@ class login extends JFrame implements ActionListener {
 
 				// 註冊driver
 				con = DriverManager.getConnection(
-						"jdbc:mysql://127.0.0.1:3306/member?useUnicode=true&characterEncoding=Big5", "root",
+						"jdbc:mysql://localhost/data?useUnicode=true&characterEncoding=utf-8&useSSL=false", "root",
 						"zh403027");
 				// 取得connection
 				Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -432,6 +395,8 @@ class registered extends JFrame implements ActionListener {
 		// creates three different Connection objects
 		Connection con = null;
 		int j, length_account = account_number.getText().length(), flag = 0;
+		int length_password = password.getText().length();
+		char c;
 		if (e.getActionCommand().equals("註冊")) {
 
 			for (j = 0; j < length_account; j++) {
@@ -442,6 +407,24 @@ class registered extends JFrame implements ActionListener {
 				}
 
 			}
+			for (c = 'A'; c <= 'Z'; c++) {
+
+				if (password.getText().charAt(0) == c) {
+					flag =0;
+                   break;
+				}
+				else
+				{
+					flag =1;
+				}
+			}
+			if (password.getText().length() < 5 || password.getText().length() > 12) {
+				flag = 1;
+			}
+
+			if (email.getText().isEmpty() == true) {
+				flag = 1;
+			}
 
 			if (flag == 0) {
 
@@ -449,7 +432,7 @@ class registered extends JFrame implements ActionListener {
 					Class.forName("com.mysql.jdbc.Driver");
 					// 註冊driver
 					con = DriverManager.getConnection(
-							"jdbc:mysql://127.0.0.1:3306/member?useUnicode=true&characterEncoding=Big5", "root",
+							"jdbc:mysql://localhost/data?useUnicode=true&characterEncoding=utf-8&useSSL=false", "root",
 							"zh403027");
 					// 取得connection
 					Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -479,7 +462,7 @@ class registered extends JFrame implements ActionListener {
 
 						for (count = 0; count < u; count++) {
 							if (account_number.getText().equals(str_account[count])) {
-								flag=0;
+								flag = 0;
 							} else {
 								flag = 1;
 							}
@@ -510,6 +493,10 @@ class registered extends JFrame implements ActionListener {
 							assert (flag == 0);
 
 							JOptionPane.showMessageDialog(this, "帳號已註冊");
+
+							account_number.setText(" ");
+							password.setText(" ");
+							email.setText(" ");
 
 						}
 

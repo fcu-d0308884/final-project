@@ -16,15 +16,13 @@ public class mysqlconnect {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 			// 註冊driver
-			con = DriverManager.getConnection(
-					"jdbc:mysql://127.0.0.1:3306/member?useUnicode=true&characterEncoding=Big5", "root", "zh403027");
+			con = DriverManager.getConnection("jdbc:mysql://localhost/data?useUnicode=true&characterEncoding=utf-8&useSSL=false","root","zh403027");
 			// 取得connection
 			Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
 			
 			try
 			{
-				//建立SQL查詢
-				String sql="select * from  information "; 
+				String sql="select * from information "; 
 				ResultSet rs = stmt.executeQuery(sql);
 				
 				//顯示資料

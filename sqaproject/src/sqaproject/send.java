@@ -14,9 +14,7 @@ public class send {
 	
 	public void send2(String str,String password1) {
 
-		final String username = "@gmail.com"; // ur email
-		final String password = "";
-
+		
 		Properties props = new Properties();
 		props.put("mail.smtp.auth", true);
 		props.put("mail.smtp.starttls.enable", true);
