@@ -114,7 +114,7 @@ class login extends JFrame implements ActionListener {
 	JPanel Control4 = new JPanel();
 	JButton login = new JButton("登入");
 	JButton forgotpassword = new JButton("忘記密碼");
-	int count_error = 0, ran_number, a;
+	int count_error = 1, ran_number, a;
 	Connection con = null;
 	String[] str_account = new String[10];
 	String[] str_password = new String[10];
@@ -172,7 +172,7 @@ class login extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent arg0) {
 		if (arg0.getActionCommand().equals("登入")) {
 
-			int u = 0, count, flag = 0, flag2 = 0;
+			int u = 0, count, flag = 0, flag2 = 0,flag_account=0,flag_check=0,flag_account_correct=0,flag_account_correct_1=0,flag_account_correct_2=0,flag_account_correct_3=0;
 
 			try {
 				Class.forName("com.mysql.jdbc.Driver");
@@ -190,8 +190,9 @@ class login extends JFrame implements ActionListener {
 
 					// 顯示資料
 					int i = 0;
+					u = 0;
 					while (rs.next()) {
-						u = 0;
+						
 						str_account[u] = rs.getString("account");
 						str_password[u] = rs.getString("password");
 						str_email[u] = rs.getString("email");
@@ -199,48 +200,106 @@ class login extends JFrame implements ActionListener {
 						u++;
 
 					}
+				
 
 					for (count = 0; count < u; count++) {
 						if (account_number.getText().equals(str_account[count])
 								&& password.getText().equals(str_password[count])) {
-
-							flag = 1;
+							
+							flag_account=1;
+							
+						
 						}
-
-						else {
-							count_error++;
-							flag = 2;
-							flag2 = 0;
-
+						else if(account_number.getText().equals(str_account[count])
+								&& password.getText().equals(str_password[count])==false){
+						
+							flag_account_correct_1++;
+							
 						}
+						else if(account_number.getText().equals(str_account[count])==false)
+							{
+							flag_account_correct_2++;                 //無此帳號
+							
+						}
+						
+						
 					}
-					if (input_checkcode.getText().equals(s)) {
-						flag = 1;
+					
+					if(flag_account_correct_1!=0&&flag_account_correct_2!=0){
+						flag_account_correct=1;
+					}
+					
+					if(flag_account_correct_2!=0&&flag_account_correct_1==0){
+						flag_account_correct=2;
+					}
+					
+					
+					
+					
+					if (input_checkcode.getText().equals(s)) {            //驗證馬
+						flag_check = 1;
 					} else {
-						count_error++;
-						flag = 2;
-						flag2 = 0;
+						
+					    flag_check=0;
 					}
 
-					if (flag == 1) {
+					if (flag_check== 1&&flag_account==1) {
 
 						JOptionPane.showMessageDialog(this, "登入成功");
-					} else if (flag == 2) {
-						count_error--;
-					}
+						account_number.setText(" ");
+						password.setText(" ");
+						input_checkcode.setText(" ");
 
-					if (count_error == 3) {
-						System.exit(0);
-					}
+					} 
 
-					if (flag2 == 0) {
+				
+					if (flag_account==1&& flag_check==0) {
 
-						JOptionPane.showMessageDialog(this, "驗證碼或帳號有誤");
+						JOptionPane.showMessageDialog(this, "驗證碼有誤");
 						account_number.setText(" ");
 						password.setText(" ");
 						input_checkcode.setText(" ");
 
 					}
+					
+					
+					
+					
+					
+					
+					if (flag_account_correct==2&& flag_check==1) {
+
+						JOptionPane.showMessageDialog(this, "帳號不存在 " );
+						account_number.setText(" ");
+						password.setText(" ");
+						input_checkcode.setText(" ");
+
+					}else if (flag_account_correct==2&&flag_check==0) {
+					
+
+						JOptionPane.showMessageDialog(this, "帳號不存在");
+						account_number.setText(" ");
+						password.setText(" ");
+						input_checkcode.setText(" ");
+
+					}
+					if (flag_account_correct==1&& flag_check==1) {
+
+						JOptionPane.showMessageDialog(this, "密碼有誤");
+						account_number.setText(" ");
+						password.setText(" ");
+						input_checkcode.setText(" ");
+
+					}
+					else if (flag_account_correct==1&& flag_check==0) {
+
+						JOptionPane.showMessageDialog(this, "密碼及驗證碼有誤");
+						account_number.setText(" ");
+						password.setText(" ");
+						input_checkcode.setText(" ");
+
+					}
+
 
 					// 關閉連線
 					rs.close();
@@ -296,6 +355,9 @@ class login extends JFrame implements ActionListener {
 							send s = new send();
 							s.send2(str_email[r], str_password[r]);
 
+						}
+						else{
+							JOptionPane.showMessageDialog(this, "無此帳號");
 						}
 
 					}
@@ -394,39 +456,98 @@ class registered extends JFrame implements ActionListener {
 
 		// creates three different Connection objects
 		Connection con = null;
-		int j, length_account = account_number.getText().length(), flag = 0;
-		int length_password = password.getText().length();
+		int j, length_account = account_number.getText().length(), flag = 0, flag_account = 0, flag_password = 0,
+				count2 = 0;
+		int length_password = password.getText().length(), count_char = 0, count_length = 0, flag_email = 0;
+		int flag_repeat=0;
 		char c;
 		if (e.getActionCommand().equals("註冊")) {
 
 			for (j = 0; j < length_account; j++) {
 				if (account_number.getText().charAt(j) == ',' || account_number.getText().charAt(j) == '/') {
-					flag = 1;
+					count_char = 1;
+
 				} else if (account_number.getText().length() < 5 || account_number.getText().length() > 12) {
-					flag = 1;
+					count_length = 1;
+
 				}
 
 			}
+			if (count_char == 0 && count_length == 0) {
+				flag_account = 0;
+			} 
+			
+			
+			
+			
+			
+			
+			else if (count_char == 1 && count_length == 1) {
+
+				flag_account = 1;
+				message.setText("帳號長度有誤及有不符規定字元");
+			} else if (count_char == 1 && count_length == 0) {
+				flag_account = 1;
+				message.setText("帳號中有不符規定字元");
+			}
+
+			else if (count_char == 0 && count_length == 1) {
+
+				flag_account = 1;
+				message.setText("帳號長度有誤");
+			}
+			
+			
+			//////////////////密碼/////////////
+
 			for (c = 'A'; c <= 'Z'; c++) {
 
 				if (password.getText().charAt(0) == c) {
-					flag =0;
-                   break;
+					count++;
+
 				}
-				else
-				{
-					flag =1;
-				}
+
 			}
+
+			if (count == 1) {
+				flag_password = 0;
+			} else if (count == 0) {
+				flag_password = 1;
+				message.setText("密碼第一字須為大寫");
+			}
+
 			if (password.getText().length() < 5 || password.getText().length() > 12) {
-				flag = 1;
+				flag_password = 1;
+				message.setText("密碼長度有誤");
 			}
-
-			if (email.getText().isEmpty() == true) {
-				flag = 1;
+			
+			
+			//////////////////////mail
+			if (email.getText().isEmpty() ==false) {
+				flag_email=1;
 			}
+			else
+			{
+				assert email.getText().isEmpty() ==true;
+				message.setText("未填信箱");
+			}
+				
+			
+			if(email.getText().isEmpty() ==true&&flag_account == 1){
+				message.setText("未填信箱 及 帳號有誤");
+			}
+			if(email.getText().isEmpty() ==true&&flag_password == 1){
+				message.setText("未填信箱 及密碼有誤");
+			}
+			if(email.getText().isEmpty() ==true&&flag_password == 1&&flag_account == 1){
+				message.setText("未填信箱 及密碼有誤及帳號格式有誤");
+			}
+			if(email.getText().isEmpty() ==false&&flag_password == 1&&flag_account == 1){
+				message.setText("密碼有誤及帳號格式有誤");
+			}
+			
 
-			if (flag == 0) {
+			if (flag_account == 0 && flag_password == 0&& flag_email==1) {
 
 				try {
 					Class.forName("com.mysql.jdbc.Driver");
@@ -450,24 +571,29 @@ class registered extends JFrame implements ActionListener {
 																				// statement」
 						String sql2 = "select * from  information ";
 						ResultSet rs2 = stmt.executeQuery(sql2);
-
+						u = 0;
 						while (rs2.next()) {
-							u = 0;
+							
 							str_account[u] = rs2.getString("account");
 							str_password[u] = rs2.getString("password");
 							str_email[u] = rs2.getString("email");
 							u++;
 
 						}
-
+						System.out.println(u);
 						for (count = 0; count < u; count++) {
 							if (account_number.getText().equals(str_account[count])) {
-								flag = 0;
+								flag_repeat = 0;
 							} else {
-								flag = 1;
+								flag_repeat++;
 							}
 						}
-
+						System.out.println(flag_repeat);
+					if(flag_repeat!=0){
+						flag=1;
+					}
+						
+					
 						if (flag == 1) {
 
 							statement.setString(1, account_number.getText());
@@ -510,7 +636,7 @@ class registered extends JFrame implements ActionListener {
 				}
 			} else {
 
-				message.setText("error");
+				// message.setText("error");
 			}
 
 		}
